@@ -1,0 +1,1823 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Linux Fundamentals for Cyber Security — كورس أساسيات لينكس للأمن السيبراني
+    </title>
+    <meta
+      name="description"
+      content="كورس أساسيات لينكس للأمن السيبراني — 6 أيام مكثفة لبناء مهارات اختبار الاختراق و CTF و Bug Bounty و Red Teaming."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              bg: "#05080a",
+              panel: "#0a0f0d",
+              panel2: "#0d1512",
+              line: "rgba(34,255,136,0.14)",
+              neon: "#22ff88",
+              neon2: "#00e5ff",
+              danger: "#ff3b5c",
+              dim: "#7c8a86",
+            },
+            fontFamily: {
+              sans: ['"IBM Plex Sans Arabic"', "system-ui", "sans-serif"],
+              display: [
+                '"Space Grotesk"',
+                '"IBM Plex Sans Arabic"',
+                "sans-serif",
+              ],
+              mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
+            },
+            boxShadow: {
+              neon: "0 0 0 1px rgba(34,255,136,0.25), 0 10px 40px -10px rgba(34,255,136,0.35)",
+              cyan: "0 0 0 1px rgba(0,229,255,0.25), 0 10px 40px -10px rgba(0,229,255,0.35)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      html,
+      body {
+        background: #05080a;
+        color: #d6f1e3;
+      }
+      body {
+        font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
+      }
+      .font-mono {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+      }
+      .font-display {
+        font-family: "Space Grotesk", "IBM Plex Sans Arabic", sans-serif;
+        letter-spacing: -0.01em;
+      }
+
+      /* Glass */
+      .glass {
+        background: linear-gradient(
+          180deg,
+          rgba(12, 20, 17, 0.7),
+          rgba(8, 12, 11, 0.6)
+        );
+        border: 1px solid rgba(34, 255, 136, 0.14);
+        backdrop-filter: blur(18px) saturate(140%);
+        border-radius: 16px;
+      }
+      .glass-cyan {
+        border-color: rgba(0, 229, 255, 0.18);
+      }
+      .hairline {
+        border: 1px solid rgba(34, 255, 136, 0.14);
+      }
+
+      /* Grid background */
+      .grid-bg {
+        background-image:
+          radial-gradient(
+            800px 400px at 80% -10%,
+            rgba(0, 229, 255, 0.1),
+            transparent 60%
+          ),
+          radial-gradient(
+            700px 500px at 10% 10%,
+            rgba(34, 255, 136, 0.1),
+            transparent 60%
+          ),
+          linear-gradient(rgba(34, 255, 136, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(34, 255, 136, 0.05) 1px, transparent 1px);
+        background-size:
+          auto,
+          auto,
+          44px 44px,
+          44px 44px;
+      }
+      .scanlines::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(255, 255, 255, 0.025) 0 1px,
+          transparent 1px 3px
+        );
+        mix-blend-mode: overlay;
+        opacity: 0.5;
+      }
+
+      /* Cursor */
+      .caret::after {
+        content: "▋";
+        color: #22ff88;
+        margin-inline-start: 2px;
+        animation: blink 1s steps(1) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* Reveal */
+      .reveal {
+        opacity: 0;
+        transform: translateY(14px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease;
+      }
+      .reveal.in {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* Glow chip */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.65rem;
+        border-radius: 999px;
+        border: 1px solid rgba(34, 255, 136, 0.2);
+        background: rgba(34, 255, 136, 0.06);
+        color: #9ff7c4;
+        font-size: 0.78rem;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .chip-cyan {
+        border-color: rgba(0, 229, 255, 0.25);
+        background: rgba(0, 229, 255, 0.06);
+        color: #9be7f7;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+      .btn-primary {
+        background: linear-gradient(180deg, #22ff88, #16c46c);
+        color: #03110a;
+        box-shadow: 0 10px 30px -10px rgba(34, 255, 136, 0.7);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 36px -10px rgba(34, 255, 136, 0.9);
+      }
+      .btn-ghost {
+        border: 1px solid rgba(34, 255, 136, 0.3);
+        color: #b9f4d3;
+        background: rgba(34, 255, 136, 0.04);
+      }
+      .btn-ghost:hover {
+        border-color: #22ff88;
+        color: #22ff88;
+      }
+
+      /* Card hover */
+      .feature-card {
+        transition: 0.3s;
+      }
+      .feature-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(34, 255, 136, 0.35);
+        box-shadow: 0 18px 50px -20px rgba(34, 255, 136, 0.35);
+      }
+
+      /* Terminal window */
+      .tw-bar {
+        background: linear-gradient(180deg, #0d1512, #0a100e);
+        border-bottom: 1px solid rgba(34, 255, 136, 0.12);
+      }
+      .tw-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        display: inline-block;
+      }
+
+      /* Accordion */
+      details[open] > summary .chev {
+        transform: rotate(180deg);
+      }
+      summary {
+        list-style: none;
+        cursor: pointer;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+
+      /* Hide scrollbar in terminal */
+      .term-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .term-scroll::-webkit-scrollbar-thumb {
+        background: rgba(34, 255, 136, 0.3);
+        border-radius: 99px;
+      }
+
+      /* Progression connectors */
+      .node {
+        position: relative;
+      }
+      .node::before {
+        content: "";
+        position: absolute;
+        top: -30px;
+        right: 50%;
+        transform: translateX(50%);
+        width: 2px;
+        height: 30px;
+        background: linear-gradient(180deg, transparent, #22ff88);
+        box-shadow: 0 0 12px #22ff88;
+        opacity: 0.45;
+      }
+      .node:first-child::before {
+        display: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .reveal {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+        #matrix {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-bg text-[#d6f1e3] antialiased selection:bg-neon/30 selection:text-white"
+  >
+    <!-- ============ MATRIX CANVAS (background) ============ -->
+    <canvas
+      id="matrix"
+      class="fixed inset-0 -z-10 w-full h-full opacity-[0.18] pointer-events-none"
+    ></canvas>
+    <div
+      class="fixed inset-0 -z-10 pointer-events-none"
+      style="
+        background:
+          radial-gradient(
+            1200px 600px at 50% -10%,
+            rgba(0, 229, 255, 0.1),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 600px at 0% 100%,
+            rgba(34, 255, 136, 0.1),
+            transparent 60%
+          );
+      "
+    ></div>
+
+    <!-- ============ NAV ============ -->
+    <header
+      class="sticky top-0 z-40 backdrop-blur-xl bg-bg/70 border-b border-line"
+    >
+      <nav
+        class="max-w-7xl mx-auto px-5 lg:px-8 h-16 flex items-center justify-between gap-4"
+      >
+        <a href="#hero" class="flex items-center gap-2 font-mono text-neon">
+          <span
+            class="inline-grid place-items-center w-8 h-8 rounded-md bg-neon/10 border border-neon/30"
+            ><i data-lucide="terminal" class="w-4 h-4"></i
+          ></span>
+          <span class="text-sm">~/linux-cyber</span><span class="caret"></span>
+        </a>
+        <ul class="hidden lg:flex items-center gap-7 text-sm text-dim">
+          <li>
+            <a class="hover:text-neon transition" href="#why">لماذا الكورس</a>
+          </li>
+          <li>
+            <a class="hover:text-neon transition" href="#roadmap"
+              >خارطة الطريق</a
+            >
+          </li>
+          <li>
+            <a class="hover:text-neon transition" href="#terminal">المحاكي</a>
+          </li>
+          <li>
+            <a class="hover:text-neon transition" href="#activities">الأنشطة</a>
+          </li>
+          <li><a class="hover:text-neon transition" href="#path">مسارك</a></li>
+        </ul>
+        <div class="flex items-center gap-2">
+          <a href="#cta" class="btn btn-primary text-sm hidden sm:inline-flex"
+            ><i data-lucide="zap" class="w-4 h-4"></i> سجّل الآن</a
+          >
+          <button
+            id="menuBtn"
+            class="lg:hidden p-2 rounded-md border border-line text-neon"
+            aria-label="القائمة"
+          >
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </nav>
+      <div
+        id="mobileMenu"
+        class="lg:hidden hidden border-t border-line bg-bg/95"
+      >
+        <div class="px-5 py-3 flex flex-col gap-3 text-sm">
+          <a href="#why">لماذا الكورس</a><a href="#roadmap">خارطة الطريق</a
+          ><a href="#terminal">المحاكي</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ HERO ============ -->
+    <section id="hero" class="relative overflow-hidden scanlines">
+      <div class="grid-bg absolute inset-0 -z-0 opacity-60"></div>
+      <div
+        class="relative max-w-7xl mx-auto px-5 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-12 gap-10 items-center"
+      >
+        <div class="lg:col-span-7 reveal">
+          <div class="flex items-center gap-2 mb-5">
+            <span class="chip"
+              ><span
+                class="w-1.5 h-1.5 rounded-full bg-neon animate-pulse"
+              ></span>
+              Cohort #01 · Live</span
+            >
+            <span class="chip chip-cyan">6 Days · Practical · CTF Ready</span>
+          </div>
+          <h1
+            class="font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.05] text-white"
+          >
+            <span class="block">Linux Fundamentals</span>
+            <span
+              class="block bg-gradient-to-l from-neon via-neon to-neon2 bg-clip-text text-transparent"
+              >for Cyber Security</span
+            >
+          </h1>
+          <p class="mt-5 text-lg text-dim max-w-2xl leading-relaxed">
+            ابنِ المهارات الأساسية في لينكس المطلوبة لاحتراف
+            <span class="text-white">Penetration Testing</span>،
+            <span class="text-white">CTFs</span>،
+            <span class="text-white">Bug Bounties</span>،
+            <span class="text-white">Red Teaming</span>، والعمل المهني في الأمن
+            السيبراني.
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a href="#roadmap" class="btn btn-primary"
+              ><i data-lucide="play" class="w-4 h-4"></i> عرض الكورس</a
+            >
+            <a href="#roadmap" class="btn btn-ghost"
+              ><i data-lucide="map" class="w-4 h-4"></i> خارطة الطريق</a
+            >
+          </div>
+
+          <!-- Stats -->
+          <div class="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="glass p-4">
+              <div class="font-mono text-neon text-2xl">06</div>
+              <div class="text-xs text-dim mt-1">أيام مكثفة</div>
+            </div>
+            <div class="glass p-4">
+              <div class="font-mono text-neon text-2xl">12h</div>
+              <div class="text-xs text-dim mt-1">ساعة تدريب</div>
+            </div>
+            <div class="glass p-4">
+              <div class="font-mono text-neon text-2xl">∞</div>
+              <div class="text-xs text-dim mt-1">مختبرات عملية</div>
+            </div>
+            <div class="glass p-4">
+              <div class="font-mono text-neon text-2xl">CTF</div>
+              <div class="text-xs text-dim mt-1">تحدي ختامي</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero terminal -->
+        <div class="lg:col-span-5 reveal">
+          <div class="glass overflow-hidden shadow-neon">
+            <div
+              class="tw-bar px-4 py-2.5 flex items-center justify-between"
+              dir="ltr"
+            >
+              <div class="flex items-center gap-1.5">
+                <span class="tw-dot bg-[#ff5f57]"></span>
+                <span class="tw-dot bg-[#febc2e]"></span>
+                <span class="tw-dot bg-[#28c840]"></span>
+              </div>
+              <div class="font-mono text-[11px] text-dim">
+                student@kali: ~ — zsh
+              </div>
+              <div class="w-10"></div>
+            </div>
+            <div
+              class="p-5 font-mono text-sm leading-relaxed min-h-[300px]"
+              dir="ltr"
+            >
+              <div>
+                <span class="text-neon2">student@kali</span
+                ><span class="text-dim">:</span
+                ><span class="text-neon">~</span>$ <span id="typed1"></span>
+              </div>
+              <div id="out1" class="text-dim mt-1"></div>
+              <div class="mt-3">
+                <span class="text-neon2">student@kali</span
+                ><span class="text-dim">:</span
+                ><span class="text-neon">~</span>$ <span id="typed2"></span>
+              </div>
+              <div id="out2" class="text-dim mt-1"></div>
+              <div class="mt-3">
+                <span class="text-neon2">student@kali</span
+                ><span class="text-dim">:</span
+                ><span class="text-neon">~</span>$ <span id="typed3"></span
+                ><span class="caret"></span>
+              </div>
+            </div>
+          </div>
+          <div
+            class="mt-3 grid grid-cols-3 gap-2 font-mono text-[11px] text-dim"
+          >
+            <div class="glass px-3 py-2 flex items-center gap-2">
+              <i data-lucide="shield" class="w-3 h-3 text-neon"></i> Pentest
+              Ready
+            </div>
+            <div class="glass px-3 py-2 flex items-center gap-2">
+              <i data-lucide="flag" class="w-3 h-3 text-neon2"></i> CTF Practice
+            </div>
+            <div class="glass px-3 py-2 flex items-center gap-2">
+              <i data-lucide="bug" class="w-3 h-3 text-danger"></i> Bug Bounty
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ WHY ============ -->
+    <section id="why" class="relative py-20 lg:py-28">
+      <div class="max-w-7xl mx-auto px-5 lg:px-8">
+        <div class="flex items-end justify-between gap-6 mb-10 reveal">
+          <div>
+            <div class="chip mb-3">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Why this course
+            </div>
+            <h2 class="font-display text-3xl sm:text-4xl text-white">
+              لماذا هذا الكورس؟
+            </h2>
+            <p class="text-dim mt-3 max-w-2xl">
+              بعد إنهاء هذا الكورس ستكون قادرًا على التحرّك داخل لينكس باحترافية
+              كاملة، وحلّ التحديات العملية المطلوبة في عالم الأمن السيبراني.
+            </p>
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <!-- cards generated below -->
+          <template id="whyTpl"></template>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ROADMAP ============ -->
+    <section id="roadmap" class="relative py-20 lg:py-28">
+      <div class="max-w-7xl mx-auto px-5 lg:px-8">
+        <div class="mb-10 reveal">
+          <div class="chip mb-3">
+            <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i> 6-Day
+            Roadmap
+          </div>
+          <h2 class="font-display text-3xl sm:text-4xl text-white">
+            خارطة الطريق اليومية
+          </h2>
+          <p class="text-dim mt-3 max-w-2xl">
+            ستة أيام منهجية، كل يوم يبني على ما قبله — من أوامر الـ Shell
+            الأساسية حتى تحدي تحقيق جنائي كامل على لينكس.
+          </p>
+        </div>
+        <div
+          id="timeline"
+          class="relative pr-6 lg:pr-10 border-r-2 border-dashed border-line space-y-5"
+        ></div>
+      </div>
+    </section>
+
+    <!-- ============ TERMINAL ============ -->
+    <section id="terminal" class="relative py-20 lg:py-28">
+      <div
+        class="max-w-7xl mx-auto px-5 lg:px-8 grid lg:grid-cols-12 gap-8 items-start"
+      >
+        <div class="lg:col-span-4 reveal">
+          <div class="chip mb-3">
+            <i data-lucide="square-terminal" class="w-3.5 h-3.5"></i>
+            Interactive Shell
+          </div>
+          <h2 class="font-display text-3xl sm:text-4xl text-white">
+            محاكي طرفية لينكس
+          </h2>
+          <p class="text-dim mt-3 leading-relaxed">
+            جرّب الأوامر مباشرة في محاكي حقيقي يحاكي بيئة Kali. يدعم نظام ملفات
+            وهمي، سجل أوامر، ومخرجات واقعية.
+          </p>
+          <div class="mt-5 grid grid-cols-2 gap-2 font-mono text-[12px]">
+            <div class="chip">help</div>
+            <div class="chip">ls</div>
+            <div class="chip">pwd</div>
+            <div class="chip">cd</div>
+            <div class="chip">cat</div>
+            <div class="chip">tree</div>
+            <div class="chip">whoami</div>
+            <div class="chip">clear</div>
+          </div>
+          <p class="text-xs text-dim mt-4 font-mono">
+            tip: استخدم ↑ / ↓ للتنقل في سجل الأوامر.
+          </p>
+        </div>
+        <div class="lg:col-span-8 reveal">
+          <div class="glass overflow-hidden shadow-cyan">
+            <div
+              class="tw-bar px-4 py-2.5 flex items-center justify-between"
+              dir="ltr"
+            >
+              <div class="flex items-center gap-1.5">
+                <span class="tw-dot bg-[#ff5f57]"></span
+                ><span class="tw-dot bg-[#febc2e]"></span
+                ><span class="tw-dot bg-[#28c840]"></span>
+              </div>
+              <div class="font-mono text-[11px] text-dim">
+                student@kali: ~ — interactive
+              </div>
+              <button
+                id="termClear"
+                class="font-mono text-[11px] text-dim hover:text-neon"
+              >
+                clear
+              </button>
+            </div>
+            <div
+              id="termBody"
+              class="term-scroll p-4 font-mono text-sm h-[420px] overflow-y-auto"
+              dir="ltr"
+              tabindex="0"
+            ></div>
+            <form
+              id="termForm"
+              class="flex items-center gap-2 px-4 py-3 border-t border-line"
+              dir="ltr"
+            >
+              <span class="font-mono text-sm"
+                ><span class="text-neon2">student@kali</span
+                ><span class="text-dim">:</span
+                ><span class="text-neon" id="termCwd">~</span>$</span
+              >
+              <input
+                id="termInput"
+                autocomplete="off"
+                spellcheck="false"
+                class="flex-1 bg-transparent font-mono text-sm text-white outline-none caret-neon"
+                placeholder="type 'help' and press enter…"
+              />
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ACTIVITIES ============ -->
+    <section id="activities" class="relative py-20 lg:py-28">
+      <div class="max-w-7xl mx-auto px-5 lg:px-8">
+        <div class="mb-10 reveal">
+          <div class="chip mb-3">
+            <i data-lucide="swords" class="w-3.5 h-3.5"></i> Hands-on
+          </div>
+          <h2 class="font-display text-3xl sm:text-4xl text-white">
+            أنشطة الكورس
+          </h2>
+          <p class="text-dim mt-3 max-w-2xl">
+            تعلّم بالممارسة عبر تحديات يومية، منافسات جماعية، وألعاب لينكس تختبر
+            فهمك الحقيقي.
+          </p>
+        </div>
+        <div
+          id="activities-grid"
+          class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        ></div>
+      </div>
+    </section>
+
+    <!-- ============ PROGRESSION PATH ============ -->
+    <section id="path" class="relative py-20 lg:py-28">
+      <div class="max-w-7xl mx-auto px-5 lg:px-8">
+        <div class="mb-10 reveal text-center">
+          <div class="chip mb-3 mx-auto">
+            <i data-lucide="git-branch" class="w-3.5 h-3.5"></i> After the
+            course
+          </div>
+          <h2 class="font-display text-3xl sm:text-4xl text-white">
+            مسارك بعد إتمام الكورس
+          </h2>
+          <p class="text-dim mt-3 max-w-2xl mx-auto">
+            شجرة تطور واقعية تأخذك من أساسيات لينكس إلى مسار الـ Red Team.
+          </p>
+        </div>
+        <div id="pathTree" class="flex flex-col items-center gap-8"></div>
+      </div>
+    </section>
+
+    <!-- ============ OUTCOMES ============ -->
+    <section id="outcomes" class="relative py-20 lg:py-28">
+      <div class="max-w-7xl mx-auto px-5 lg:px-8">
+        <div class="mb-10 reveal">
+          <div class="chip mb-3">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Course
+            Outcomes
+          </div>
+          <h2 class="font-display text-3xl sm:text-4xl text-white">
+            مخرجات الكورس
+          </h2>
+        </div>
+        <div
+          id="outcomes-grid"
+          class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        ></div>
+      </div>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section id="cta" class="relative py-20 lg:py-28">
+      <div class="max-w-6xl mx-auto px-5 lg:px-8 reveal">
+        <div class="relative overflow-hidden glass p-8 sm:p-14 text-center">
+          <div
+            class="absolute -inset-1 -z-10 opacity-40"
+            style="
+              background:
+                radial-gradient(
+                  600px 200px at 50% 0%,
+                  rgba(34, 255, 136, 0.35),
+                  transparent 60%
+                ),
+                radial-gradient(
+                  500px 200px at 50% 100%,
+                  rgba(0, 229, 255, 0.25),
+                  transparent 60%
+                );
+            "
+          ></div>
+          <div class="font-mono text-xs text-neon mb-3">
+            $ sudo ./start_journey.sh
+          </div>
+          <h2
+            class="font-display text-3xl sm:text-5xl text-white leading-tight"
+          >
+            جاهز لبدء رحلتك في
+            <span
+              class="bg-gradient-to-l from-neon to-neon2 bg-clip-text text-transparent"
+              >أمن لينكس السيبراني</span
+            >؟
+          </h2>
+          <p class="text-dim mt-4 max-w-2xl mx-auto">
+            انضم إلى الدُفعة القادمة وابدأ بناء مهاراتك العملية اليوم.
+          </p>
+          <div class="mt-7 flex flex-wrap justify-center gap-3">
+            <a href="#" class="btn btn-primary"
+              ><i data-lucide="rocket" class="w-4 h-4"></i> سجّل الآن</a
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="border-t border-line py-8 mt-10">
+      <div
+        class="max-w-7xl mx-auto px-5 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono text-xs text-dim"
+      >
+        <div>
+          © 2026 Linux Fundamentals for Cyber Security · All rights reserved.
+        </div>
+        <div dir="ltr">
+          $ echo "stay curious, stay ethical." <span class="text-neon">#</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      /* ============ Lucide icons ============ */
+      lucide.createIcons();
+
+      /* ============ Mobile menu ============ */
+      document.getElementById("menuBtn").addEventListener("click", () => {
+        document.getElementById("mobileMenu").classList.toggle("hidden");
+      });
+
+      /* ============ Matrix rain ============ */
+      (function matrix() {
+        const c = document.getElementById("matrix");
+        const ctx = c.getContext("2d");
+        let w, h, cols, drops;
+        const chars =
+          "アァカサタナハマヤラワabcdefghijklmnopqrstuvwxyz0123456789#$%@*+-=_/\\<>".split(
+            "",
+          );
+        function resize() {
+          w = c.width = innerWidth;
+          h = c.height = innerHeight;
+          cols = Math.floor(w / 16);
+          drops = Array(cols)
+            .fill(0)
+            .map(() => Math.random() * -50);
+        }
+        resize();
+        addEventListener("resize", resize);
+        let last = 0;
+        function frame(t) {
+          if (t - last > 55) {
+            last = t;
+            ctx.fillStyle = "rgba(5,8,10,0.18)";
+            ctx.fillRect(0, 0, w, h);
+            ctx.font = "14px JetBrains Mono, monospace";
+            for (let i = 0; i < cols; i++) {
+              const ch = chars[Math.floor(Math.random() * chars.length)];
+              const x = i * 16,
+                y = drops[i] * 16;
+              ctx.fillStyle = Math.random() < 0.02 ? "#a7ffd1" : "#22ff88";
+              ctx.fillText(ch, x, y);
+              if (y > h && Math.random() > 0.975) drops[i] = 0;
+              drops[i]++;
+            }
+          }
+          requestAnimationFrame(frame);
+        }
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches)
+          requestAnimationFrame(frame);
+      })();
+
+      /* ============ Typing effect (hero terminal) ============ */
+      (function typer() {
+        const steps = [
+          {
+            cmd: "whoami",
+            out: "student — future penetration tester",
+            el: "typed1",
+            out_el: "out1",
+          },
+          {
+            cmd: "cat /etc/course.conf",
+            out: "name=Linux Fundamentals\nlevel=Beginner→Pro\ntrack=Offensive Security",
+            el: "typed2",
+            out_el: "out2",
+          },
+          {
+            cmd: "sudo ./start_course.sh --day 1",
+            out: "",
+            el: "typed3",
+            out_el: null,
+          },
+        ];
+        let i = 0;
+        function typeStep() {
+          if (i >= steps.length) return;
+          const s = steps[i];
+          const t = document.getElementById(s.el);
+          let k = 0;
+          const id = setInterval(() => {
+            t.textContent = s.cmd.slice(0, ++k);
+            if (k >= s.cmd.length) {
+              clearInterval(id);
+              if (s.out_el) {
+                document.getElementById(s.out_el).innerHTML = s.out.replace(
+                  /\n/g,
+                  "<br>",
+                );
+              }
+              i++;
+              setTimeout(typeStep, 450);
+            }
+          }, 55);
+        }
+        setTimeout(typeStep, 400);
+      })();
+
+      /* ============ Why cards ============ */
+      const whyItems = [
+        {
+          i: "navigation",
+          t: "تنقّل احترافي في لينكس",
+          d: "فهم كامل لشجرة الملفات والأوامر الأساسية.",
+        },
+        {
+          i: "square-terminal",
+          t: "استخدام الـ Command Line",
+          d: "استخدام الـ Shell بكفاءة في المهام اليومية.",
+        },
+        {
+          i: "users",
+          t: "إدارة المستخدمين والصلاحيات",
+          d: "users, groups, chmod, chown, sudo.",
+        },
+        {
+          i: "search",
+          t: "البحث وتحليل الملفات",
+          d: "find, locate, grep, awk, sed بإتقان.",
+        },
+        {
+          i: "file-text",
+          t: "العمل مع الـ Logs",
+          d: "تحليل سجلات النظام لاكتشاف الأنشطة.",
+        },
+        {
+          i: "regex",
+          t: "إتقان الـ Regex",
+          d: "استخراج البيانات الحساسة والأنماط بدقّة.",
+        },
+        {
+          i: "cpu",
+          t: "بيئات لينكس المتقدمة",
+          d: "متغيرات البيئة، العمليات، والـ aliases.",
+        },
+        {
+          i: "flag",
+          t: "حلّ تحديات CTF",
+          d: "تطبيق المهارات على تحديات حقيقية.",
+        },
+        {
+          i: "shield",
+          t: "بدء استخدام Kali Linux",
+          d: "الانتقال السلس إلى توزيعة الاختبار.",
+        },
+        {
+          i: "target",
+          t: "الاستعداد للـ Bug Bounty",
+          d: "تهيئة الأرضية لـ THM و HTB والصيد.",
+        },
+      ];
+      const whyGrid = document.querySelector("#why .grid");
+      whyItems.forEach((x) => {
+        const el = document.createElement("div");
+        el.className = "glass feature-card p-5 reveal";
+        el.innerHTML = `
+    <div class="w-10 h-10 rounded-lg bg-neon/10 border border-neon/30 grid place-items-center text-neon mb-3">
+      <i data-lucide="${x.i}" class="w-5 h-5"></i>
+    </div>
+    <h3 class="font-display text-white text-lg">${x.t}</h3>
+    <p class="text-dim text-sm mt-2 leading-relaxed">${x.d}</p>
+  `;
+        whyGrid.appendChild(el);
+      });
+
+      /* ============ Roadmap (6 days) ============ */
+      const days = [
+        {
+          d: 1,
+          t: "Linux Fundamentals & Command Line",
+          i: "terminal",
+          topics: [
+            "Linux Basics",
+            "Terminal",
+            "Navigation",
+            "Files & Directories",
+            "Essential Commands",
+          ],
+          lab: "بناء مساحة عمل أولى للأمن السيبراني.",
+          hw: "إنشاء هيكل مشروع كامل لاختبار الاختراق.",
+        },
+        {
+          d: 2,
+          t: "File System & Searching",
+          i: "folder-search",
+          topics: [
+            "Linux Directory Structure",
+            "find",
+            "locate",
+            "grep",
+            "cat",
+            "head",
+            "tail",
+          ],
+          lab: "تحقيق في ملفات النظام.",
+          hw: "العثور على ملفات الـ Logs المهمة.",
+        },
+        {
+          d: 3,
+          t: "Regex & Text Processing",
+          i: "regex",
+          topics: [
+            "Regex Fundamentals",
+            "grep",
+            "sed",
+            "awk",
+            "cut",
+            "sort",
+            "uniq",
+          ],
+          lab: "استخراج الإيميلات و IPs و أسماء المستخدمين.",
+          hw: "تحليل ملفات Log كاملة.",
+        },
+        {
+          d: 4,
+          t: "Users, Groups & Permissions",
+          i: "users-round",
+          topics: ["Users", "Groups", "chmod", "chown", "sudo", "useradd"],
+          lab: "إصلاح صلاحيات مكسورة.",
+          hw: "إنشاء مستخدمين ومجموعات بصلاحيات محددة.",
+        },
+        {
+          d: 5,
+          t: "Processes & Environment",
+          i: "cpu",
+          topics: ["ps", "top", "htop", "kill", "env", "export", "alias"],
+          lab: "كشف وإنهاء عمليات مشبوهة.",
+          hw: "بناء مكتبة aliases مفيدة.",
+        },
+        {
+          d: 6,
+          t: "Compression + Final Cyber Lab",
+          i: "archive",
+          topics: ["zip", "tar", "gzip", "file", "strings", "xxd"],
+          lab: "Linux Investigation Challenge — تحقيق ختامي.",
+          hw: "تقديم تقرير تحقيق كامل.",
+        },
+      ];
+      const tl = document.getElementById("timeline");
+      days.forEach((d, idx) => {
+        const wrap = document.createElement("details");
+        wrap.className = "reveal";
+        if (idx === 0) wrap.open = true;
+        wrap.innerHTML = `
+    <summary class="glass feature-card p-5 sm:p-6 relative">
+      <span class="absolute -right-[34px] sm:-right-[44px] top-6 w-4 h-4 rounded-full bg-neon shadow-[0_0_20px_#22ff88] border-4 border-bg"></span>
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="shrink-0 w-12 h-12 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-neon"><i data-lucide="${d.i}" class="w-5 h-5"></i></div>
+          <div class="min-w-0">
+            <div class="font-mono text-xs text-neon">DAY 0${d.d}</div>
+            <div class="font-display text-white text-lg sm:text-xl truncate">${d.t}</div>
+          </div>
+        </div>
+        <i data-lucide="chevron-down" class="chev w-5 h-5 text-dim transition shrink-0"></i>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-1.5">
+        ${d.topics.map((t) => `<span class="chip">${t}</span>`).join("")}
+      </div>
+    </summary>
+    <div class="mt-2 mr-6 sm:mr-12 grid sm:grid-cols-2 gap-3">
+      <div class="glass p-4 border-r-2 border-r-neon/60">
+        <div class="flex items-center gap-2 text-neon font-mono text-xs mb-1"><i data-lucide="beaker" class="w-3.5 h-3.5"></i> Practical Lab</div>
+        <p class="text-sm text-white/90">${d.lab}</p>
+      </div>
+      <div class="glass p-4 border-r-2 border-r-neon2/60">
+        <div class="flex items-center gap-2 text-neon2 font-mono text-xs mb-1"><i data-lucide="book-open" class="w-3.5 h-3.5"></i> Homework</div>
+        <p class="text-sm text-white/90">${d.hw}</p>
+      </div>
+    </div>
+  `;
+        tl.appendChild(wrap);
+      });
+
+      /* ============ Activities ============ */
+      const acts = [
+        {
+          i: "swords",
+          t: "تحديات يومية",
+          d: "تحدٍ كل يوم لتثبيت مهارات اليوم.",
+        },
+        {
+          i: "users",
+          t: "منافسات جماعية",
+          d: "العمل في فرق صغيرة وحل المشكلات معًا.",
+        },
+        {
+          i: "gamepad-2",
+          t: "ألعاب لينكس",
+          d: "تعلّم ممتع عبر ألعاب تركّز على الـ Shell.",
+        },
+        {
+          i: "flag",
+          t: "Mini CTFs",
+          d: "تحديات قصيرة بأسلوب الـ Capture The Flag.",
+        },
+        {
+          i: "shield-alert",
+          t: "CTF Exercises",
+          d: "تمارين CTF بصعوبة متدرّجة.",
+        },
+        {
+          i: "fingerprint",
+          t: "تحقيق ختامي",
+          d: "Linux Investigation Challenge كامل.",
+        },
+      ];
+      const ag = document.getElementById("activities-grid");
+      acts.forEach((x) => {
+        const el = document.createElement("div");
+        el.className = "glass feature-card p-5 reveal";
+        el.innerHTML = `
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-10 h-10 rounded-lg bg-neon2/10 border border-neon2/30 grid place-items-center text-neon2"><i data-lucide="${x.i}" class="w-5 h-5"></i></div>
+      <h3 class="font-display text-white text-lg">${x.t}</h3>
+    </div>
+    <p class="text-dim text-sm leading-relaxed">${x.d}</p>
+  `;
+        ag.appendChild(el);
+      });
+
+      /* ============ Progression Tree ============ */
+      const path = [
+        { t: "Linux Fundamentals", i: "terminal", c: "neon" },
+        { t: "Kali Linux", i: "shield", c: "neon" },
+        { t: "TryHackMe — Linux Rooms", i: "box", c: "neon2" },
+        { t: "OverTheWire Bandit", i: "key-round", c: "neon2" },
+        { t: "Hack The Box", i: "cpu", c: "neon" },
+        { t: "Bug Bounty", i: "bug", c: "neon2" },
+        { t: "Web Penetration Testing", i: "globe", c: "neon" },
+        { t: "Red Team Path", i: "flame", c: "danger" },
+      ];
+      const tree = document.getElementById("pathTree");
+      path.forEach((p, idx) => {
+        const el = document.createElement("div");
+        el.className = "node reveal w-full max-w-md";
+        const color =
+          p.c === "neon"
+            ? "text-neon border-neon/40 bg-neon/10"
+            : p.c === "neon2"
+              ? "text-neon2 border-neon2/40 bg-neon2/10"
+              : "text-danger border-danger/40 bg-danger/10";
+        el.innerHTML = `
+    <div class="glass feature-card p-4 flex items-center gap-3">
+      <div class="font-mono text-xs text-dim w-6">${String(idx + 1).padStart(2, "0")}</div>
+      <div class="w-10 h-10 rounded-lg border ${color} grid place-items-center"><i data-lucide="${p.i}" class="w-5 h-5"></i></div>
+      <div class="flex-1 min-w-0">
+        <div class="font-display text-white">${p.t}</div>
+        <div class="font-mono text-[11px] text-dim">stage ${idx + 1} / ${path.length}</div>
+      </div>
+      <i data-lucide="chevron-left" class="w-4 h-4 text-dim"></i>
+    </div>
+  `;
+        tree.appendChild(el);
+      });
+
+      /* ============ Outcomes ============ */
+      const outcomes = [
+        "فهم احترافي للينكس",
+        "العمل بثقة في Kali Linux",
+        "حلّ تحديات CTF خاصة بلينكس",
+        "فهم أنظمة الملفات بعمق",
+        "إدارة الصلاحيات بإتقان",
+        "البحث ومعالجة البيانات",
+        "بناء أساس قوي للأمن السيبراني",
+      ];
+      const og = document.getElementById("outcomes-grid");
+      outcomes.forEach((t) => {
+        const el = document.createElement("div");
+        el.className = "glass feature-card p-5 flex items-center gap-3 reveal";
+        el.innerHTML = `
+    <div class="w-9 h-9 rounded-lg bg-neon/15 border border-neon/30 grid place-items-center text-neon shrink-0"><i data-lucide="check" class="w-5 h-5"></i></div>
+    <div class="text-white">${t}</div>
+  `;
+        og.appendChild(el);
+      });
+
+      /* ============ Reveal observer ============ */
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.12 },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+      /* ============ Re-render icons after dynamic content ============ */
+      lucide.createIcons();
+
+      /* ============ Interactive Terminal ============ */
+      (function term() {
+        const body = document.getElementById("termBody");
+        const form = document.getElementById("termForm");
+        const input = document.getElementById("termInput");
+        const cwdEl = document.getElementById("termCwd");
+        const clearBtn = document.getElementById("termClear");
+
+        const fs = {
+          type: "dir",
+          name: "/",
+          children: {
+            home: {
+              type: "dir",
+              children: {
+                student: {
+                  type: "dir",
+                  children: {
+                    labs: {
+                      type: "dir",
+                      children: {
+                        "day1.md": {
+                          type: "file",
+                          content:
+                            "# Day 1 Lab\\nBuild your first CyberSecurity workspace.",
+                        },
+                        "day2.md": {
+                          type: "file",
+                          content:
+                            "# Day 2 Lab\\nInvestigate system files using find/grep.",
+                        },
+                      },
+                    },
+                    ctf: {
+                      type: "dir",
+                      children: {
+                        "flag.txt": {
+                          type: "file",
+                          content: "flag{linux_is_your_superpower}",
+                        },
+                        "notes.md": {
+                          type: "file",
+                          content: "Try: cat /etc/passwd | grep bash",
+                        },
+                      },
+                    },
+                    tools: {
+                      type: "dir",
+                      children: {
+                        "nmap.sh": {
+                          type: "file",
+                          content: "#!/bin/bash\\nnmap -sV -T4 $1",
+                        },
+                      },
+                    },
+                    "readme.md": {
+                      type: "file",
+                      content:
+                        "Welcome to Linux Fundamentals for Cyber Security.\\nType `help` to see available commands.",
+                    },
+                  },
+                },
+              },
+            },
+            etc: {
+              type: "dir",
+              children: {
+                passwd: {
+                  type: "file",
+                  content:
+                    "root:x:0:0:root:/root:/bin/bash\\nstudent:x:1000:1000:Student:/home/student:/bin/zsh",
+                },
+                "course.conf": {
+                  type: "file",
+                  content:
+                    "name=Linux Fundamentals\\ndays=6\\ntrack=Offensive Security",
+                },
+              },
+            },
+          },
+        };
+        let cwd = ["home", "student"];
+        const HOME = ["home", "student"];
+
+        function resolvePath(p) {
+          let parts;
+          if (p.startsWith("/")) parts = p.split("/").filter(Boolean);
+          else if (p === "~" || p.startsWith("~/")) {
+            parts = [...HOME, ...p.slice(2).split("/").filter(Boolean)];
+            if (p === "~") parts = [...HOME];
+          } else parts = [...cwd, ...p.split("/").filter(Boolean)];
+          const out = [];
+          for (const x of parts) {
+            if (x === ".") continue;
+            if (x === "..") {
+              out.pop();
+              continue;
+            }
+            out.push(x);
+          }
+          return out;
+        }
+        function getNode(parts) {
+          let n = fs;
+          for (const x of parts) {
+            if (n.type !== "dir" || !n.children[x]) return null;
+            n = n.children[x];
+          }
+          return n;
+        }
+        function pathStr(parts) {
+          if (
+            parts.length >= 2 &&
+            parts[0] === "home" &&
+            parts[1] === "student"
+          ) {
+            const rest = parts.slice(2).join("/");
+            return "~" + (rest ? "/" + rest : "");
+          }
+          return "/" + parts.join("/");
+        }
+        function setCwd(parts) {
+          cwd = parts;
+          cwdEl.textContent = pathStr(parts);
+        }
+        setCwd(cwd);
+
+        const history = [];
+        let hIdx = -1;
+
+        function println(html = "", cls = "") {
+          const div = document.createElement("div");
+          if (cls) div.className = cls;
+          div.innerHTML = html;
+          body.appendChild(div);
+          body.scrollTop = body.scrollHeight;
+        }
+        function printPrompt(cmd) {
+          println(
+            `<span class="text-neon2">student@kali</span><span class="text-dim">:</span><span class="text-neon">${pathStr(cwd)}</span>$ <span class="text-white">${escape(cmd)}</span>`,
+          );
+        }
+        function escape(s) {
+          return String(s).replace(
+            /[&<>]/g,
+            (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c],
+          );
+        }
+
+        function banner() {
+          println(`<span class="text-neon">┌──(student㉿kali)-[~]</span>`);
+          println(
+            `<span class="text-neon">└─$</span> <span class="text-dim">welcome to the Linux Fundamentals interactive shell.</span>`,
+          );
+          println(
+            `<span class="text-dim">type 'help' to see available commands.</span>`,
+          );
+          println("");
+        }
+        banner();
+
+        function treeRender(node, prefix = "") {
+          if (node.type !== "dir") return "";
+          const keys = Object.keys(node.children);
+          let out = "";
+          keys.forEach((k, i) => {
+            const isLast = i === keys.length - 1;
+            const branch = isLast ? "└── " : "├── ";
+            const child = node.children[k];
+            const color = child.type === "dir" ? "text-neon" : "text-white";
+            out += `<div><span class="text-dim">${prefix}${branch}</span><span class="${color}">${k}${child.type === "dir" ? "/" : ""}</span></div>`;
+            if (child.type === "dir") {
+              out += treeRender(child, prefix + (isLast ? "    " : "│   "));
+            }
+          });
+          return out;
+        }
+
+        const commands = {
+          help() {
+            println(`<div class="text-neon">Available commands:</div>
+      <div class="text-dim">help · ls · pwd · cd [path] · cat [file] · tree · whoami · clear · echo · date</div>`);
+          },
+          ls(args) {
+            const target = args[0] ? resolvePath(args[0]) : cwd;
+            const n = getNode(target);
+            if (!n)
+              return println(
+                `<span class="text-danger">ls: no such file or directory: ${escape(args[0])}</span>`,
+              );
+            if (n.type === "file") return println(escape(args[0]));
+            const items = Object.entries(n.children).map(([k, v]) => {
+              const color = v.type === "dir" ? "text-neon" : "text-white";
+              return `<span class="${color}">${k}${v.type === "dir" ? "/" : ""}</span>`;
+            });
+            println(
+              `<div class="flex flex-wrap gap-x-4 gap-y-1">${items.join("")}</div>`,
+            );
+          },
+          pwd() {
+            println(pathStr(cwd).replace("~", "/home/student"));
+          },
+          cd(args) {
+            const t = args[0] || "~";
+            const parts = resolvePath(t);
+            const n = getNode(parts);
+            if (!n)
+              return println(
+                `<span class="text-danger">cd: no such file or directory: ${escape(t)}</span>`,
+              );
+            if (n.type !== "dir")
+              return println(
+                `<span class="text-danger">cd: not a directory: ${escape(t)}</span>`,
+              );
+            setCwd(parts);
+          },
+          cat(args) {
+            if (!args[0])
+              return println(
+                `<span class="text-danger">cat: missing file operand</span>`,
+              );
+            const parts = resolvePath(args[0]);
+            const n = getNode(parts);
+            if (!n)
+              return println(
+                `<span class="text-danger">cat: ${escape(args[0])}: No such file</span>`,
+              );
+            if (n.type !== "file")
+              return println(
+                `<span class="text-danger">cat: ${escape(args[0])}: Is a directory</span>`,
+              );
+            println(
+              `<pre class="whitespace-pre-wrap text-white">${escape(n.content.replace(/\\n/g, "\n"))}</pre>`,
+            );
+          },
+          tree() {
+            const n = getNode(cwd);
+            println(`<span class="text-neon">${pathStr(cwd)}</span>`);
+            println(treeRender(n));
+          },
+          whoami() {
+            println("student");
+          },
+          clear() {
+            body.innerHTML = "";
+            banner();
+          },
+          echo(args) {
+            println(escape(args.join(" ")));
+          },
+          date() {
+            println(new Date().toString());
+          },
+        };
+
+        function run(line) {
+          const [cmd, ...args] = line.trim().split(/\s+/);
+          if (!cmd) return;
+          printPrompt(line);
+          if (commands[cmd]) commands[cmd](args);
+          else
+            println(
+              `<span class="text-danger">${escape(cmd)}: command not found</span> <span class="text-dim">— try 'help'</span>`,
+            );
+        }
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const v = input.value;
+          if (v.trim()) {
+            history.push(v);
+            hIdx = history.length;
+          }
+          run(v);
+          input.value = "";
+        });
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowUp") {
+            e.preventDefault();
+            if (hIdx > 0) {
+              hIdx--;
+              input.value = history[hIdx] || "";
+            }
+          }
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            if (hIdx < history.length - 1) {
+              hIdx++;
+              input.value = history[hIdx] || "";
+            } else {
+              hIdx = history.length;
+              input.value = "";
+            }
+          }
+        });
+        clearBtn.addEventListener("click", () => commands.clear());
+        body.addEventListener("click", () => input.focus());
+      })();
+    </script>
+
+    <!-- ============ KIOSK / AD MODE (Workshop Monitor Slideshow) ============ -->
+    <style>
+      /* Floating control button */
+      #kioskBtn {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 60;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 0.9rem;
+        border-radius: 999px;
+        background: linear-gradient(
+          180deg,
+          rgba(34, 255, 136, 0.18),
+          rgba(0, 229, 255, 0.1)
+        );
+        border: 1px solid rgba(34, 255, 136, 0.35);
+        color: #d8ffe9;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.78rem;
+        box-shadow:
+          0 0 0 1px rgba(34, 255, 136, 0.15),
+          0 10px 30px -10px rgba(34, 255, 136, 0.5);
+        backdrop-filter: blur(10px);
+        cursor: pointer;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      #kioskBtn:hover {
+        transform: translateY(-2px);
+        box-shadow:
+          0 0 0 1px rgba(34, 255, 136, 0.3),
+          0 18px 40px -10px rgba(34, 255, 136, 0.7);
+      }
+      #kioskBtn .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: #22ff88;
+        box-shadow: 0 0 10px #22ff88;
+        animation: blink 1.4s steps(1) infinite;
+      }
+
+      /* Kiosk overlay - workshop monitor frame */
+      body.kiosk-on {
+        overflow: hidden;
+      }
+      #kioskFrame {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        pointer-events: none;
+        display: none;
+      }
+      body.kiosk-on #kioskFrame {
+        display: block;
+      }
+      /* Monitor bezel */
+      #kioskFrame::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border: 14px solid #0a0e0c;
+        border-radius: 22px;
+        box-shadow:
+          inset 0 0 0 1px rgba(34, 255, 136, 0.25),
+          inset 0 0 80px rgba(0, 229, 255, 0.1),
+          inset 0 0 200px rgba(0, 0, 0, 0.6),
+          0 0 0 2px rgba(34, 255, 136, 0.18);
+      }
+      /* Heavy scanlines on monitor */
+      #kioskFrame::after {
+        content: "";
+        position: absolute;
+        inset: 14px;
+        border-radius: 10px;
+        background:
+          repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.18) 0 2px,
+            transparent 2px 4px
+          ),
+          radial-gradient(
+            120% 80% at 50% 0%,
+            transparent 60%,
+            rgba(0, 0, 0, 0.55) 100%
+          );
+        mix-blend-mode: multiply;
+      }
+      /* Top HUD */
+      #kioskHud {
+        position: fixed;
+        top: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 55;
+        display: none;
+        align-items: center;
+        gap: 14px;
+        padding: 0.55rem 1rem;
+        border-radius: 999px;
+        background: rgba(5, 8, 10, 0.78);
+        border: 1px solid rgba(34, 255, 136, 0.3);
+        color: #c9fbe1;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
+        backdrop-filter: blur(14px);
+      }
+      body.kiosk-on #kioskHud {
+        display: flex;
+      }
+      #kioskHud .rec {
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: #ff3b5c;
+        box-shadow: 0 0 12px #ff3b5c;
+        animation: blink 1s steps(1) infinite;
+      }
+      #kioskHud .sep {
+        width: 1px;
+        height: 14px;
+        background: rgba(34, 255, 136, 0.25);
+      }
+      #kioskHud button {
+        color: #9ff7c4;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+      #kioskHud button:hover {
+        color: #22ff88;
+      }
+
+      /* Progress bar */
+      #kioskBar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        z-index: 56;
+        background: rgba(34, 255, 136, 0.08);
+        display: none;
+      }
+      body.kiosk-on #kioskBar {
+        display: block;
+      }
+      #kioskBar > span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #22ff88, #00e5ff);
+        box-shadow: 0 0 12px #22ff88;
+        transition: width 0.15s linear;
+      }
+
+      /* Side ticker - "NOW SHOWING" */
+      #kioskTicker {
+        position: fixed;
+        bottom: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 55;
+        display: none;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 229, 255, 0.14),
+          rgba(34, 255, 136, 0.1)
+        );
+        border: 1px solid rgba(0, 229, 255, 0.3);
+        color: #e6ffff;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.78rem;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 0 30px -8px rgba(0, 229, 255, 0.5);
+      }
+      body.kiosk-on #kioskTicker {
+        display: block;
+      }
+      #kioskTicker .label {
+        color: #7be7ff;
+        opacity: 0.8;
+        margin-inline-end: 0.5rem;
+      }
+
+      /* Slide-in animation for the active section */
+      .kiosk-slide {
+        animation: kioskSlide 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+        will-change: transform, opacity, filter;
+      }
+      @keyframes kioskSlide {
+        0% {
+          opacity: 0;
+          transform: translateY(40px) scale(0.985);
+          filter: blur(6px) brightness(0.6);
+        }
+        60% {
+          opacity: 1;
+          filter: blur(0) brightness(1.05);
+        }
+        100% {
+          opacity: 1;
+          transform: none;
+          filter: none;
+        }
+      }
+      /* Subtle Ken Burns drift while a slide is "on air" */
+      .kiosk-live {
+        animation: kioskDrift 9s ease-in-out infinite alternate;
+      }
+      @keyframes kioskDrift {
+        0% {
+          transform: scale(1) translate3d(0, 0, 0);
+        }
+        100% {
+          transform: scale(1.025) translate3d(0, -6px, 0);
+        }
+      }
+      /* Dim non-active sections behind the bezel */
+      body.kiosk-on section:not(.kiosk-live) {
+        filter: brightness(0.35) saturate(0.6);
+        transition: filter 0.5s ease;
+      }
+      /* Hide nav + floating button while in kiosk */
+      body.kiosk-on header {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      body.kiosk-on #kioskBtn {
+        display: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .kiosk-slide,
+        .kiosk-live {
+          animation: none !important;
+        }
+      }
+    </style>
+
+    <button id="kioskBtn" aria-label="تشغيل وضع العرض">
+      <span class="dot"></span>
+      <i data-lucide="monitor-play" class="w-4 h-4"></i>
+      وضع العرض · Workshop Mode
+    </button>
+
+    <div id="kioskBar"><span></span></div>
+
+    <div id="kioskHud">
+      <span class="rec"></span>
+      <span>LIVE · AD MODE</span>
+      <span class="sep"></span>
+      <span id="kioskCount" class="text-dim">01 / 09</span>
+      <span class="sep"></span>
+      <button id="kioskPrev" title="السابق">
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+      <button id="kioskPause" title="إيقاف/تشغيل">
+        <i data-lucide="pause" class="w-4 h-4"></i>
+      </button>
+      <button id="kioskNext" title="التالي">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
+      <span class="sep"></span>
+      <button id="kioskExit" title="خروج">
+        <i data-lucide="x" class="w-4 h-4"></i> خروج
+      </button>
+    </div>
+
+    <div id="kioskTicker">
+      <span class="label">NOW SHOWING ▸</span><span id="kioskTitle">—</span>
+    </div>
+
+    <div id="kioskFrame" aria-hidden="true"></div>
+
+    <script>
+      /* ============================================================
+   Kiosk / Ad Mode — cycles through every <section> like a
+   digital signage monitor in a workshop. Auto-plays, with
+   slide-in transitions, scanlines, bezel, and HUD controls.
+   ============================================================ */
+      (function () {
+        const sections = Array.from(document.querySelectorAll("section[id]"));
+        if (!sections.length) return;
+
+        const btn = document.getElementById("kioskBtn");
+        const hud = document.getElementById("kioskHud");
+        const bar = document.querySelector("#kioskBar > span");
+        const counter = document.getElementById("kioskCount");
+        const title = document.getElementById("kioskTitle");
+        const exitBtn = document.getElementById("kioskExit");
+        const pauseBtn = document.getElementById("kioskPause");
+        const nextBtn = document.getElementById("kioskNext");
+        const prevBtn = document.getElementById("kioskPrev");
+
+        // Friendly Arabic titles per section id
+        const titles = {
+          hero: "الواجهة الرئيسية",
+          why: "لماذا هذا الكورس",
+          roadmap: "خارطة الطريق · 6 أيام",
+          terminal: "محاكي الطرفية التفاعلي",
+          activities: "أنشطة الكورس",
+          path: "مسارك بعد الكورس",
+          instructor: "المدرب · Aboubakr Salah Houta",
+          outcomes: "مخرجات الكورس",
+          cta: "سجّل الآن",
+        };
+
+        const SLIDE_MS = 7000; // time per slide
+        let idx = 0,
+          timer = null,
+          paused = false,
+          on = false;
+
+        const pad = (n) => String(n).padStart(2, "0");
+
+        function setProgress(pct) {
+          bar.style.width = pct + "%";
+        }
+
+        function show(i) {
+          idx = (i + sections.length) % sections.length;
+          sections.forEach((s) => {
+            s.classList.remove("kiosk-live", "kiosk-slide");
+          });
+          const el = sections[idx];
+          el.classList.add("kiosk-slide");
+          // scroll into view, then mark as "live" for the drift animation
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          setTimeout(() => el.classList.add("kiosk-live"), 900);
+
+          counter.textContent = pad(idx + 1) + " / " + pad(sections.length);
+          title.textContent = titles[el.id] || el.id;
+          // restart progress
+          setProgress(0);
+          const start = performance.now();
+          cancelAnimationFrame(show._raf);
+          function tick(t) {
+            if (paused || !on) return;
+            const p = Math.min(100, ((t - start) / SLIDE_MS) * 100);
+            setProgress(p);
+            if (p < 100) show._raf = requestAnimationFrame(tick);
+          }
+          show._raf = requestAnimationFrame(tick);
+        }
+
+        function play() {
+          clearInterval(timer);
+          timer = setInterval(() => {
+            if (!paused && on) show(idx + 1);
+          }, SLIDE_MS);
+        }
+
+        function enter() {
+          on = true;
+          paused = false;
+          document.body.classList.add("kiosk-on");
+          window.scrollTo({ top: 0, behavior: "instant" });
+          show(0);
+          play();
+          if (window.lucide) lucide.createIcons();
+        }
+        function exit() {
+          on = false;
+          document.body.classList.remove("kiosk-on");
+          sections.forEach((s) =>
+            s.classList.remove("kiosk-live", "kiosk-slide"),
+          );
+          clearInterval(timer);
+          cancelAnimationFrame(show._raf);
+          setProgress(0);
+        }
+        function togglePause() {
+          paused = !paused;
+          pauseBtn.innerHTML = paused
+            ? '<i data-lucide="play" class="w-4 h-4"></i>'
+            : '<i data-lucide="pause" class="w-4 h-4"></i>';
+          if (window.lucide) lucide.createIcons();
+          if (!paused) show(idx); // resume progress from current
+        }
+
+        btn.addEventListener("click", enter);
+        exitBtn.addEventListener("click", exit);
+        pauseBtn.addEventListener("click", togglePause);
+        nextBtn.addEventListener("click", () => show(idx + 1));
+        prevBtn.addEventListener("click", () => show(idx - 1));
+
+        document.addEventListener("keydown", (e) => {
+          if (!on) return;
+          if (e.key === "Escape") exit();
+          else if (e.key === "ArrowLeft")
+            show(idx + 1); // RTL: left = next
+          else if (e.key === "ArrowRight") show(idx - 1);
+          else if (e.key === " ") {
+            e.preventDefault();
+            togglePause();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
